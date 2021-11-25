@@ -6,6 +6,7 @@ use diesel::{
     Connection, RunQueryDsl,
 };
 use futures::Future;
+use std::pin::Pin;
 
 pub trait AsyncRunQueryDsl<Conn>: RunQueryDsl<Conn>
 where
@@ -14,7 +15,7 @@ where
     fn execute_async(
         self,
         db: &Database<Conn>,
-    ) -> Box<dyn Future<Output = Result<usize, AsyncError<Error>>> + Send>
+    ) -> Pin<Box<dyn Future<Output = Result<usize, AsyncError<Error>>> + Send>>
     where
         Conn: Connection,
         Self: ExecuteDsl<Conn>;
@@ -22,7 +23,7 @@ where
     fn load_async<U: 'static>(
         self,
         db: &Database<Conn>,
-    ) -> Box<dyn Future<Output = Result<Vec<U>, AsyncError<Error>>> + Send>
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<U>, AsyncError<Error>>> + Send>>
     where
         U: Send,
         Self: LoadQuery<Conn, U>;
@@ -30,7 +31,7 @@ where
     fn get_result_async<U: 'static>(
         self,
         db: &Database<Conn>,
-    ) -> Box<dyn Future<Output = Result<U, AsyncError<Error>>> + Send>
+    ) -> Pin<Box<dyn Future<Output = Result<U, AsyncError<Error>>> + Send>>
     where
         U: Send,
         Self: LoadQuery<Conn, U>;
@@ -38,7 +39,7 @@ where
     fn get_optional_result_async<U: 'static>(
         self,
         db: &Database<Conn>,
-    ) -> Box<dyn Future<Output = Result<Option<U>, AsyncError<Error>>> + Send>
+    ) -> Pin<Box<dyn Future<Output = Result<Option<U>, AsyncError<Error>>> + Send>>
     where
         U: Send,
         Self: LoadQuery<Conn, U>;
@@ -46,7 +47,7 @@ where
     fn get_results_async<U: 'static>(
         self,
         db: &Database<Conn>,
-    ) -> Box<dyn Future<Output = Result<Vec<U>, AsyncError<Error>>> + Send>
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<U>, AsyncError<Error>>> + Send>>
     where
         U: Send,
         Self: LoadQuery<Conn, U>;
@@ -54,7 +55,7 @@ where
     fn first_async<U: 'static>(
         self,
         db: &Database<Conn>,
-    ) -> Box<dyn Future<Output = Result<U, AsyncError<Error>>> + Send>
+    ) -> Pin<Box<dyn Future<Output = Result<U, AsyncError<Error>>> + Send>>
     where
         U: Send,
         Self: LimitDsl,
@@ -70,72 +71,72 @@ where
     fn execute_async(
         self,
         db: &Database<Conn>,
-    ) -> Box<dyn Future<Output = Result<usize, AsyncError<Error>>> + Send>
+    ) -> Pin<Box<dyn Future<Output = Result<usize, AsyncError<Error>>> + Send>>
     where
         Conn: Connection,
         Self: ExecuteDsl<Conn>,
     {
-        Box::new(db.get(move |conn| self.execute(conn)))
+        Box::pin(db.get(move |conn| self.execute(conn)))
     }
 
     #[inline]
     fn load_async<U: 'static>(
         self,
         db: &Database<Conn>,
-    ) -> Box<dyn Future<Output = Result<Vec<U>, AsyncError<Error>>> + Send>
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<U>, AsyncError<Error>>> + Send>>
     where
         U: Send,
         Self: LoadQuery<Conn, U>,
     {
-        Box::new(db.get(move |conn| self.load(conn)))
+        Box::pin(db.get(move |conn| self.load(conn)))
     }
 
     #[inline]
     fn get_results_async<U: 'static>(
         self,
         db: &Database<Conn>,
-    ) -> Box<dyn Future<Output = Result<Vec<U>, AsyncError<Error>>> + Send>
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<U>, AsyncError<Error>>> + Send>>
     where
         U: Send,
         Self: LoadQuery<Conn, U>,
     {
-        Box::new(db.get(move |conn| self.get_results(conn)))
+        Box::pin(db.get(move |conn| self.get_results(conn)))
     }
 
     #[inline]
     fn get_result_async<U: 'static>(
         self,
         db: &Database<Conn>,
-    ) -> Box<dyn Future<Output = Result<U, AsyncError<Error>>> + Send>
+    ) -> Pin<Box<dyn Future<Output = Result<U, AsyncError<Error>>> + Send>>
     where
         U: Send,
         Self: LoadQuery<Conn, U>,
     {
-        Box::new(db.get(move |conn| self.get_result(conn)))
+        Box::pin(db.get(move |conn| self.get_result(conn)))
     }
 
     #[inline]
     fn get_optional_result_async<U: 'static>(
         self,
         db: &Database<Conn>,
-    ) -> Box<dyn Future<Output = Result<Option<U>, AsyncError<Error>>> + Send>
+    ) -> Pin<Box<dyn Future<Output = Result<Option<U>, AsyncError<Error>>> + Send>>
     where
         U: Send,
         Self: LoadQuery<Conn, U>,
     {
-        Box::new(db.get(move |conn| self.get_result(conn).optional()))
+        Box::pin(db.get(move |conn| self.get_result(conn).optional()))
     }
 
     #[inline]
     fn first_async<U: 'static>(
         self,
         db: &Database<Conn>,
-    ) -> Box<dyn Future<Output = Result<U, AsyncError<Error>>> + Send>
+    ) -> Pin<Box<dyn Future<Output = Result<U, AsyncError<Error>>> + Send>>
     where
         U: Send,
         Self: LimitDsl,
         Limit<Self>: LoadQuery<Conn, U>,
     {
-        Box::new(db.get(move |conn| self.first(conn)))
+        Box::pin(db.get(move |conn| self.first(conn)))
     }
 }
