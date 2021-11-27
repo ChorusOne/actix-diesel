@@ -17,7 +17,7 @@ struct User {
 }
 
 pub async fn fetch_all(state: Data<AppState>) -> Result<impl Responder> {
-    let results = users::table.load_async::<User>(&state.db).await.unwrap();
+    let results = users::table.load_async::<User>(&state.db).await?;
 
     Ok(Json(results))
 }
@@ -30,7 +30,7 @@ pub async fn fetch_one(state: Data<AppState>, name: Path<String>) -> Result<impl
             AsyncError::Execute(Error::NotFound) => ErrorNotFound(err),
             _ => ErrorInternalServerError(err),
         })
-        .await.unwrap();
+        .await?;
 
     Ok(Json(result))
 }
@@ -47,8 +47,7 @@ pub async fn create(state: Data<AppState>, name: Path<String>) -> Result<impl Re
             name: name.into_inner(),
         })
         .execute_async(&state.db)
-        .await
-        .unwrap();
+        .await?;
 
     Ok(HttpResponse::Created())
 }
